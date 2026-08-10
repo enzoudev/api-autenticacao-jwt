@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
 import { UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService} from '@nestjs/jwt'
 import { PrismaService } from '../prisma/prisma.service';
-import { LoginUserDto } from './dto/create-user.dto';
+import { LoginUserDto } from './dto/login-dto.dto';
 
 @Injectable()
 export class AuthService {
@@ -54,4 +53,45 @@ export class AuthService {
               throw error
           }
       }
+
+
+
+    async validateGoogleUser(googleUser: { email: string; name: string; picture: string }) {
+
+        try {
+            let user = await this.prisma.user.findUnique({
+                where: {email: googleUser.email}
+            })
+
+
+            if(!user) {
+                user = await this.prisma.user.create({
+                    data: {
+                        email: googleUser.email,
+                        name: googleUser.name,
+                        username: googleUser.email.split('@')[0],
+                        password: '',
+                    },
+                })
+            }
+
+            const token = this.jwtService.sign(
+                {id: user.id, name: user.name, username: user.username, email: user.email, role: user.role},
+                {secret: process.env.JWT_SECRET, expiresIn: "24h"}
+            )
+
+
+            return {
+                message: "Login com o google feito com sucesso!",
+                token
+            }
+        } catch(err: any) {
+            if(err instanceof UnauthorizedException) {
+                throw err
+            }
+
+            throw err
+        }
+
+    }
 }
