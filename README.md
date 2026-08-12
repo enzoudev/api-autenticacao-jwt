@@ -7,7 +7,7 @@ Sistema de autenticação desenvolvido com foco em segurança, controle de acess
 - [x] JWT
 - [ ] Refresh Token
 - [x] OAuth com Google
-- [ ] Recuperação de senha
+- [x] Recuperação de senha
 - [ ] Verificação por e-mail
 - [ ] RBAC (Admin, User...)
 
