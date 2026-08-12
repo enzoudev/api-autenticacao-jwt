@@ -1,7 +1,8 @@
 import { Controller, Post, Body, Get, Req, ConflictException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import { LoginUserDto } from './dto/login-dto.dto';
+import { ForgotPasswordDto, LoginUserDto } from './dto/login-dto.dto';
+import { MailService } from './mail.service';
 
 
 @Controller('auth')
@@ -27,4 +28,9 @@ export class AuthController{
     return this.authService.validateGoogleUser(req.user);
     }
 
+
+    @Post('forgot-password')
+    async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+        return this.authService.forgotPassword(forgotPasswordDto.email)
+    }
 }

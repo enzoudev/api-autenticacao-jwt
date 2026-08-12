@@ -4,10 +4,11 @@ import * as bcrypt from 'bcrypt';
 import { JwtService} from '@nestjs/jwt'
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginUserDto } from './dto/login-dto.dto';
+import { MailService } from './mail.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService  ) {}
+  constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService, private mailService: MailService ) {}
 
 
 
@@ -94,4 +95,52 @@ export class AuthService {
         }
 
     }
+
+
+
+    async forgotPassword(email: string) {
+        try {
+            const user = await this.prisma.user.findUnique({
+                where: {email}
+            })
+            if(user) {
+                const resetToken = this.jwtService.sign(
+                { email: user.email }, 
+                { secret: process.env.JWT_SECRET, expiresIn: '15m' }
+                );
+
+                await this.mailService.sendForgotPasswordEmail(user.email, resetToken);
+            }
+            console.log("E-mail enviado com sucesso!");
+
+
+            return { message: "Se o e-mail estiver cadastrado em nossa base, você receberá instruções para redefinir sua senha em instantes." };
+        } catch(err) {
+            throw err
+        }
+    }
+
+
+    async resetPassword(token: string, newPassword: string) {
+        try {
+    
+            const payload = this.jwtService.verify(token, {
+            secret: process.env.JWT_SECRET,
+            });
+
+
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+
+            await this.prisma.user.update({
+            where: { email: payload.email },
+            data: { password: hashedPassword },
+            });
+
+            return { message: "Senha redefinida com sucesso!" };
+        } catch (error) {
+            throw new Error("Token inválido ou expirado.");
+  }
+}
+
 }
