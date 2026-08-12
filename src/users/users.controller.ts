@@ -1,6 +1,6 @@
 import { Controller, Post, Body, ConflictException } from '@nestjs/common';
 import { UsersService} from './users.service'
-import { LoginUserDto, CreateUserDto} from './dto/create-user.dto';
+import { CreateUserDto} from './dto/create-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -14,11 +14,7 @@ export class UsersController {
 
     }
 
-    @Post('login')
-    login(@Body() loginUserDto: LoginUserDto) {
 
-            return this.usersService.login(loginUserDto)
-        }
     
 
 }
