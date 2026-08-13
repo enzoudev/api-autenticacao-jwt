@@ -8,7 +8,7 @@ Sistema de autenticação desenvolvido com foco em segurança, controle de acess
 - [ ] Refresh Token
 - [x] OAuth com Google
 - [x] Recuperação de senha
-- [ ] Verificação por e-mail
+- [x] Verificação por e-mail
 - [ ] RBAC (Admin, User...)
 
 ## 🛠️ Tecnologias
