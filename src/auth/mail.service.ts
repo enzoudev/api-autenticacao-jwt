@@ -43,9 +43,30 @@ export class MailService {
         `,
       });
 
-      console.log("✅ E-mail disparado com sucesso! Resposta:", info.response);
+      console.log("E-mail enviado com sucesso! Resposta:", info.response);
     } catch (error) {
-      console.error("❌ ERRO DETALHADO DO NODEMAILER:", error);
+      console.error("ERRO DETALHADO DO NODEMAILER:", error);
+    }
+  }
+
+  async sendVerificationEmail(email: string, verificationLink: string) {
+    try {
+      
+      const info = await this.transporter.sendMail({
+        from: `"Sua Aplicação" <${process.env.MAIL_FROM}>`,
+        to: email,
+        subject: 'Verificação de E-mail',
+        html: `
+          <h1>Bem-vindo!</h1>
+          <p>Clique no link abaixo para verificar o seu e-mail:</p>
+          <a href="${verificationLink}">Verificar E-mail</a>
+          <p>Se você não criou esta conta, ignore este e-mail.</p>
+        `,
+      });
+
+      console.log("E-mail de verificação enviado com sucesso! Resposta:", info.response);
+    } catch (error) {
+      console.error("ERRO DETALHADO DO NODEMAILER:", error);
     }
   }
 }

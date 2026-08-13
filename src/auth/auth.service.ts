@@ -27,13 +27,17 @@ export class AuthService {
   
               if(!user) {
                   throw new UnauthorizedException("Usuário/email não cadastrados");
-              }
+                }
+
+              if (!user.isVerified) {
+                throw new UnauthorizedException("Por favor, verifique seu e-mail antes de fazer login.");
+                }
   
               const passwordValid = await bcrypt.compare(loginUserDto.password, user.password);
   
               if(!passwordValid) {
                   throw new UnauthorizedException("Senha inválida");
-              }
+                }
   
               const token = this.jwtService.sign(
                   {id: user.id, name: user.name, username: user.username, email: user.email, role: user.role},
@@ -143,4 +147,44 @@ export class AuthService {
   }
 }
 
+
+
+
+    async sendVerificationEmail(email: string) {
+        const verificationToken = await this.jwtService.sign(
+            { email },
+            {secret: process.env.JWT_SECRET, expiresIn: "1d"}
+        )
+
+        const URL = process.env.APP_URL
+
+        if(!URL) {
+            return {
+                message: "URL Inválida"
+            }
+        }
+        const verificationLink = `${URL}/auth/verify-email?token=${verificationToken}`;
+
+        await this.mailService.sendVerificationEmail(email, verificationLink);
+    }
+
+
+    async verifyEmail(token: string) {
+        try {
+            const payload = await this.jwtService.verify(token, {
+                secret: process.env.JWT_SECRET
+            })
+
+            await this.prisma.user.update({
+                where: {email: payload.email},
+                data: { isVerified: true}
+            })
+
+            return {
+                message: "Email verificado com sucesso!"
+            }
+        } catch(err) {
+            throw new Error("Token de verificação inválido ou expirado.")
+        }
+    }
 }
