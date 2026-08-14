@@ -5,7 +5,7 @@ Sistema de autenticação desenvolvido com foco em segurança, controle de acess
 ## 🚀 Funcionalidades
 
 - [x] JWT
-- [ ] Refresh Token
+- [x] Refresh Token
 - [x] OAuth com Google
 - [x] Recuperação de senha
 - [x] Verificação por e-mail
