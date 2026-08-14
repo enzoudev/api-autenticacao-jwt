@@ -11,6 +11,74 @@ export class AuthService {
   constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService, private mailService: MailService ) {}
 
 
+    async generateTokens(userId: number, email: string, role: string) {
+        const payload = { sub: userId, email, role };
+
+        const accessToken = this.jwtService.sign(payload, {
+        secret: process.env.JWT_ACCESS_SECRET, 
+        expiresIn: '15m',
+        });
+
+        const refreshToken = this.jwtService.sign(payload, {
+        secret: process.env.JWT_REFRESH_SECRET, 
+        expiresIn: '7d',
+        });
+
+
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7); 
+
+        await this.prisma.refreshToken.create({
+        data: {
+            token: refreshToken,
+            userId: userId,
+            expiresAt: expiresAt,
+        },
+        });
+
+
+        return {
+        accessToken,
+        refreshToken,
+        };
+
+    }
+
+
+    async refreshToken(oldRefreshToken: string) {
+        try {
+
+            const payload = this.jwtService.verify(oldRefreshToken, {
+                secret: process.env.JWT_REFRESH_SECRET,
+            });
+
+        
+            const tokenRecord = await this.prisma.refreshToken.findUnique({
+                where: { token: oldRefreshToken },
+            });
+
+
+            if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
+                throw new UnauthorizedException('Refresh token inválido ou expirado.');
+            }
+
+            
+            const newAccessToken = this.jwtService.sign(
+                { sub: payload.sub, email: payload.email, role: payload.role },
+                {
+                secret: process.env.JWT_ACCESS_SECRET,
+                expiresIn: '15m',
+                },
+            );
+
+            return { accessToken: newAccessToken };
+        } catch (error) {
+            throw new UnauthorizedException('Refresh token inválido.');
+        }
+    }
+
+
+
 
   async login(loginUserDto: LoginUserDto) {
           try {
@@ -38,17 +106,9 @@ export class AuthService {
               if(!passwordValid) {
                   throw new UnauthorizedException("Senha inválida");
                 }
-  
-              const token = this.jwtService.sign(
-                  {id: user.id, name: user.name, username: user.username, email: user.email, role: user.role},
-                  {secret: process.env.JWT_SECRET!, expiresIn: '24h'}
-  
-              )
-  
-              return {
-                  message: 'Login realizado com sucesso!',
-                  token
-              }
+
+
+              return this.generateTokens(user.id, user.email, user.role);
   
           } catch( error: any) {
               if( error instanceof UnauthorizedException) {
@@ -58,6 +118,13 @@ export class AuthService {
               throw error
           }
       }
+
+    async logout(refreshToken: string) {
+        await this.prisma.refreshToken.deleteMany({
+        where: { token: refreshToken },
+        });
+        return { message: 'Logout realizado com sucesso.' };
+    }
 
 
 

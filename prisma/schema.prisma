@@ -22,4 +22,17 @@ model User {
   updatedAt DateTime @updatedAt
   isVerified Boolean @default(false)
   @@map("users")
+  refreshTokens RefreshToken[]
+}
+
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    Int      // <-- Mudado de String para Int para bater com o User.id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens") 
 }

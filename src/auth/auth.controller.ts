@@ -44,4 +44,15 @@ export class AuthController{
     return this.authService.verifyEmail(token);
     }
 
+
+    @Post('refresh')
+    async refresh(@Body('refreshToken') refreshToken: string) {
+        return this.authService.refreshToken(refreshToken);
+    }
+
+    @Post('logout')
+    async logout(@Body('refreshToken') refreshToken: string) {
+        return this.authService.logout(refreshToken);
+    }
+
 }
