@@ -9,7 +9,7 @@ Sistema de autenticação desenvolvido com foco em segurança, controle de acess
 - [x] OAuth com Google
 - [x] Recuperação de senha
 - [x] Verificação por e-mail
-- [ ] RBAC (Admin, User...)
+- [x] RBAC (Admin, User...)
 
 ## 🛠️ Tecnologias
 
